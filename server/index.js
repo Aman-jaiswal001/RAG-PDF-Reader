@@ -23,6 +23,7 @@ await connectMongoDB();
 await initializeQdrant();
 
 
+app.get('/',(req,res) => res.send('server is running....'))
 app.use("/auth", authRoutes);
 
 app.use("/chats", chatRoutes);
@@ -31,7 +32,6 @@ app.use("/documents", documentRoutes);
 
 app.use("/ai", aiRoutes);
 
-app.get('/',(req,res) => res.send('server is running....'))
 
 
 // --------------------------------------------------
