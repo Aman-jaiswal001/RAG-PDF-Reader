@@ -31,6 +31,8 @@ app.use("/documents", documentRoutes);
 
 app.use("/ai", aiRoutes);
 
+app.get('/',(req,res) => res.send('server is running....'))
+
 
 // --------------------------------------------------
 // Start Server
