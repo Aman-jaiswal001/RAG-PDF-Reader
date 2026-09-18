@@ -128,6 +128,8 @@ export const uploadDocument = async (req, res) => {
 
     const pdfResult = await pdfParser.getText();
 
+    await parser.destroy();
+
     const text = pdfResult.text?.trim();
 
     if (!text) {
