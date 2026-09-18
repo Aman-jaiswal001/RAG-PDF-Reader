@@ -1,17 +1,17 @@
 import express from "express";
 import "dotenv/config";
-
 import cors from "cors";
+
 import authRoutes from "./routes/authRoute.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
-import {connectMongoDB} from './config/db.js'
-import {initializeQdrant} from './config/qdrant.js'
+
+import { connectMongoDB } from "./config/db.js";
+import { initializeQdrant } from "./config/qdrant.js";
 
 const app = express();
-const port = 5000;
-
+const PORT = process.env.PORT || 5000;
 
 // --------------------------------------------------
 // Middleware
@@ -19,26 +19,40 @@ const port = 5000;
 
 app.use(cors());
 app.use(express.json());
-await connectMongoDB();
-await initializeQdrant();
 
+// --------------------------------------------------
+// Routes
+// --------------------------------------------------
 
-app.get('/',(req,res) => res.send('server is running....'))
+app.get("/", (req, res) => {
+  res.send("🚀 RAG server is running...");
+});
+
 app.use("/auth", authRoutes);
-
 app.use("/chats", chatRoutes);
-
 app.use("/documents", documentRoutes);
-
 app.use("/ai", aiRoutes);
-
-
 
 // --------------------------------------------------
 // Start Server
 // --------------------------------------------------
 
+const startServer = async () => {
+  try {
+    // Connect MongoDB
+    await connectMongoDB();
 
-app.listen(port, () => {
-  console.log(`\n🚀 RAG server running on http://localhost:${port}`);
-});
+    // Initialize Qdrant
+    await initializeQdrant();
+
+    // Start Express server only after dependencies are ready
+    app.listen(PORT, () => {
+      console.log(`\n🚀 RAG server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Server startup failed:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

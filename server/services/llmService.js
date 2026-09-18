@@ -4,7 +4,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 const groqLLM = process.env.GROQ_API_KEY
   ? new ChatGroq({
       apiKey: process.env.GROQ_API_KEY,
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       temperature: 0,
     })
   : null;
@@ -23,11 +23,11 @@ export const invokeLLM = async (messages) => {
   // 1️⃣ Try Groq first
   if (groqLLM) {
     try {
-      // console.log("🤖 Trying Groq...");
+      console.log("🤖 Trying Groq...");
 
       const response = await groqLLM.invoke(messages);
 
-      // console.log("✅ Groq response received");
+      console.log("✅ Groq response received");
 
       return {
         response,

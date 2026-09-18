@@ -108,6 +108,7 @@ export const askRagQuestion = async ({
   // ------------------------------------------------
 
   if (!docs || docs.length === 0) {
+    // console.log('docs not available')
     return {
       answer:
         "I don't know from the uploaded PDF.",
@@ -170,8 +171,10 @@ ${context}
   // 5. Extract answer
   // ----------------------------------------------
 
-  //  console.log(`🤖 Answer generated using: ${provider}`);
+  // console.log(`🤖 Answer generated using: ${provider}`);
   const answer = String(response.content);
+  // console.log('answer : ',answer)
+  
 
   // ----------------------------------------------
   // 6. Sources

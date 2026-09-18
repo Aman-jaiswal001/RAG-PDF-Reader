@@ -83,6 +83,7 @@ export const searchDocuments = async ({
       limit,
       filter
     );
+    // console.log('docs : ',docs);
 
   return docs;
 };
@@ -128,9 +129,9 @@ export const deleteDocumentChunks = async ({
       offset = result.next_page_offset;
     } while (offset !== null);
 
-    console.log(
-      `🔎 Found ${pointIds.length} chunks for document ${documentId}`
-    );
+    // console.log(
+    //   `🔎 Found ${pointIds.length} chunks for document ${documentId}`
+    // );
 
     // Nothing to delete
     if (pointIds.length === 0) {

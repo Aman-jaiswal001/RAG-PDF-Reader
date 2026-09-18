@@ -16,9 +16,9 @@ export const initializeQdrant = async () => {
     );
 
     if (!exists) {
-      // console.log(
-      //   `⚠️ Qdrant collection "${COLLECTION_NAME}" does not exist`
-      // );
+      console.log(
+        `⚠️ Qdrant collection "${COLLECTION_NAME}" does not exist`
+      );
 
       return;
     }
@@ -61,7 +61,7 @@ export const initializeQdrant = async () => {
       }
     }
 
-    // console.log("✅ Qdrant initialization completed");
+    console.log("✅ Qdrant initialization completed");
   } catch (error) {
     console.error("❌ Qdrant initialization failed");
     console.error(error.message);
