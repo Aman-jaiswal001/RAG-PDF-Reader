@@ -20,6 +20,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+await connectMongoDB();
+
+// Initialize Qdrant
+await initializeQdrant();
+
 // --------------------------------------------------
 // Routes
 // --------------------------------------------------
@@ -37,22 +42,6 @@ app.use("/ai", aiRoutes);
 // Start Server
 // --------------------------------------------------
 
-const startServer = async () => {
-  try {
-    // Connect MongoDB
-    await connectMongoDB();
-
-    // Initialize Qdrant
-    await initializeQdrant();
-
-    // Start Express server only after dependencies are ready
-    app.listen(PORT, () => {
-      console.log(`\n🚀 RAG server running on http://localhost:${PORT}`);
-    });
-  } catch (error) {
-    console.error("❌ Server startup failed:", error);
-    process.exit(1);
-  }
-};
-
-startServer();
+app.listen(PORT, () => {
+  console.log(`\n🚀 RAG server running on http://localhost:${PORT}`);
+});
