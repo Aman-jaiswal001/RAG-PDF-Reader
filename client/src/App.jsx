@@ -17,6 +17,8 @@ import {
   LogOut,
 } from "lucide-react";
 
+import toast from "react-hot-toast";
+
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -180,7 +182,9 @@ function App() {
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to delete chat.");
+        toast.error("Failed to delete chat.")
       }
+      toast.success("Chat deleted")
 
       setChats((prev) => prev.filter((chat) => chat._id !== chatId));
 
@@ -219,7 +223,9 @@ function App() {
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to delete PDF.");
+        toast.error("Failed to delete PDF")
       }
+      toast.success("PDF deleted successfully")
 
       setDocuments((prev) =>
         prev.filter((item) => item.documentId !== documentId),
@@ -284,7 +290,9 @@ function App() {
 
       if (!data.success) {
         throw new Error(data.message || "Upload failed.");
+        toast.error('Upload failed')
       }
+      toast.success("PDF uploaded successfully!");
 
       await loadDocuments();
       setSelectedDocumentId(data.documentId);
@@ -430,7 +438,7 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-x-hidden bg-white">
+    <div className="h-screen hide-scrollbar flex flex-col overflow-x-hidden bg-white">
       <header className=" border-b-2 border-slate-500 bg-slate-950 backdrop-blur">
         <div className="mx-auto flex w-full max-w-7xl gap-2 px-2 py-3 sm:gap-2 sm:px-6 sm:py-4">
           {/* LEFT: Logo + Title */}
@@ -471,18 +479,7 @@ function App() {
               </div>
             </div>
 
-            {/* Clear Chat */}
-            <button
-              onClick={clearChat}
-              title="Clear chat"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-white transition hover:bg-white hover:text-slate-950 sm:h-auto sm:w-auto sm:gap-2 sm:px-3 sm:py-2"
-            >
-              <Trash2 size={15} />
-
-              <span className="hidden text-sm font-medium sm:inline">
-                Clear chat
-              </span>
-            </button>
+            
 
             {/* Logout */}
             <button
@@ -650,7 +647,7 @@ function App() {
                         deleteDocument(document.documentId);
                       }}
                       disabled={deletingDocumentId === document.documentId}
-                      className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                      className="rounded-md p-1.5 text-slate-800 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                       title="Delete PDF"
                     >
                       {deletingDocumentId === document.documentId ? (
@@ -685,7 +682,7 @@ function App() {
               </button>
             </div>
 
-            <div className="max-h-56 space-y-1.5 overflow-y-auto p-1 rounded-lg bg-white">
+            <div className="max-h-56 hide-scrollbar space-y-1.5 overflow-y-auto p-1 rounded-lg bg-white">
               {loadingChats ? (
                 <div className="flex items-center gap-2 px-2 py-3 text-xs text-slate-400">
                   <Loader2 size={14} className="animate-spin" />
@@ -776,7 +773,7 @@ function App() {
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 hide-scrollbar flex-1 overflow-y-auto">
             <div className="space-y-5 p-5 sm:p-7">
               {messages.map((message) => {
                 const isUser = message.role === "user";

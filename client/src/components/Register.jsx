@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 const Register = ({ onLogin }) => {
   const { register } = useAuth();
@@ -19,8 +20,10 @@ const Register = ({ onLogin }) => {
 
     try {
       await register(name, email, password);
+      toast.success('🙏Register successfully🙏')
     } catch (error) {
       setError(error.message);
+      toast.error(error.message)
     } finally {
       setLoading(false);
     }
