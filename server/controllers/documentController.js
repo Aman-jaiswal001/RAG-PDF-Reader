@@ -1,12 +1,16 @@
 import {qdrant,COLLECTION_NAME} from '../config/qdrant.js'
 import crypto from "crypto";
-import { PDFParse } from "pdf-parse";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { QdrantVectorStore } from "@langchain/qdrant";
 import embeddings from "../services/embeddingService.js"
 import { ChatSession } from "../models/ChatSession.js";
 import { ChatMessage } from "../models/ChatMessage.js";
 import { Document } from "../models/Document.js";
+
+import fs from "fs/promises";
+import os from "os";
+import path from "path";
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 
 import {
   deleteDocumentChunks
@@ -99,8 +103,13 @@ export const getDocuments = async (req, res) => {
 };
 
 export const uploadDocument = async (req, res) => {
+  let tempFilePath = null;
+
   try {
-    // console.log('uploadDocument called')
+    // ----------------------------------------------
+    // 1. Validate uploaded file
+    // ----------------------------------------------
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -108,10 +117,17 @@ export const uploadDocument = async (req, res) => {
       });
     }
 
-    // console.log(`\n📄 Uploading: ${req.file.originalname}`);
+    if (req.file.mimetype !== "application/pdf") {
+      return res.status(400).json({
+        success: false,
+        message: "Only PDF files are allowed",
+      });
+    }
+
+    console.log(`📄 Uploading: ${req.file.originalname}`);
 
     // ----------------------------------------------
-    // 1. Generate a unique document ID
+    // 2. Generate unique document ID
     // ----------------------------------------------
 
     const documentId = crypto.randomUUID();
@@ -119,30 +135,50 @@ export const uploadDocument = async (req, res) => {
     const uploadedAt = new Date().toISOString();
 
     // ----------------------------------------------
-    // 2. Extract PDF text
+    // 3. Create temporary PDF file
     // ----------------------------------------------
 
-    const pdfParser = new PDFParse({
-      data: req.file.buffer,
-    });
+    tempFilePath = path.join(
+      os.tmpdir(),
+      `${documentId}.pdf`
+    );
 
-    const pdfResult = await pdfParser.getText();
+    await fs.writeFile(
+      tempFilePath,
+      req.file.buffer
+    );
 
-    await parser.destroy();
+    console.log("📁 Temporary PDF created");
 
-    const text = pdfResult.text?.trim();
+    // ----------------------------------------------
+    // 4. Load PDF using LangChain PDFLoader
+    // ----------------------------------------------
 
-    if (!text) {
+    const loader = new PDFLoader(tempFilePath);
+
+    const pdfDocuments = await loader.load();
+
+    console.log(
+      `📄 PDF pages loaded: ${pdfDocuments.length}`
+    );
+
+    // ----------------------------------------------
+    // 5. Extract text
+    // ----------------------------------------------
+
+    const hasText = pdfDocuments.some(
+      (doc) => doc.pageContent?.trim()
+    );
+
+    if (!hasText) {
       return res.status(400).json({
         success: false,
         message: "Could not extract text from this PDF",
       });
     }
 
-    // console.log(`📝 Extracted characters: ${text.length}`);
-
     // ----------------------------------------------
-    // 3. Split text into chunks
+    // 6. Split PDF documents into chunks
     // ----------------------------------------------
 
     const splitter = new RecursiveCharacterTextSplitter({
@@ -150,14 +186,22 @@ export const uploadDocument = async (req, res) => {
       chunkOverlap: 200,
     });
 
-    const docs = await splitter.createDocuments([text]);
+    const docs = await splitter.splitDocuments(
+      pdfDocuments
+    );
+
+    console.log(
+      `🧩 Created chunks: ${docs.length}`
+    );
 
     // ----------------------------------------------
-    // 4. Add metadata to every chunk
+    // 7. Add metadata to every chunk
     // ----------------------------------------------
 
     docs.forEach((doc, index) => {
       doc.metadata = {
+        ...doc.metadata,
+
         documentId,
         userId: req.user.userId,
         fileName: req.file.originalname,
@@ -166,34 +210,36 @@ export const uploadDocument = async (req, res) => {
       };
     });
 
-    // console.log(`🔹 Created chunks: ${docs.length}`);
-
     // ----------------------------------------------
-    // 5. Create collection on first upload
+    // 8. Create / update Qdrant vector store
     // ----------------------------------------------
 
     if (!vectorStore) {
-      // console.log("Creating Qdrant collection...");
+      console.log("🔵 Creating Qdrant vector store...");
 
-      vectorStore = await QdrantVectorStore.fromDocuments(docs, embeddings, {
-        url: process.env.QDRANT_URL,
-        apiKey: process.env.QDRANT_API_KEY,
-        collectionName: COLLECTION_NAME,
-      });
+      vectorStore = await QdrantVectorStore.fromDocuments(
+        docs,
+        embeddings,
+        {
+          url: process.env.QDRANT_URL,
+          apiKey: process.env.QDRANT_API_KEY,
+          collectionName: COLLECTION_NAME,
+        }
+      );
 
-      // console.log(`✅ Created collection: ${COLLECTION_NAME}`);
+      console.log("✅ Qdrant collection created");
     } else {
-      // --------------------------------------------
-      // 6. Add chunks to existing collection
-      // --------------------------------------------
+      console.log("🟢 Adding chunks to Qdrant...");
 
       await vectorStore.addDocuments(docs);
 
-      // console.log(`✅ Added ${docs.length} chunks to Qdrant`);
+      console.log(
+        `✅ Added ${docs.length} chunks to Qdrant`
+      );
     }
 
     // ----------------------------------------------
-    // 6. Save document metadata in MongoDB
+    // 9. Save document metadata in MongoDB
     // ----------------------------------------------
 
     const savedDocument = await Document.create({
@@ -203,11 +249,15 @@ export const uploadDocument = async (req, res) => {
       chunkCount: docs.length,
     });
 
-    // console.log(
-    //   `✅ Document saved in MongoDB: ${savedDocument._id}`
-    // );
+    console.log(
+      `✅ Document saved: ${savedDocument._id}`
+    );
 
-     return res.status(201).json({
+    // ----------------------------------------------
+    // 10. Response
+    // ----------------------------------------------
+
+    return res.status(201).json({
       success: true,
       message: "PDF uploaded and indexed successfully",
 
@@ -219,6 +269,7 @@ export const uploadDocument = async (req, res) => {
         uploadedAt: savedDocument.createdAt,
       },
     });
+
   } catch (error) {
     console.error("❌ UPLOAD ERROR:");
     console.error(error);
@@ -228,9 +279,26 @@ export const uploadDocument = async (req, res) => {
       message: "Failed to process PDF",
       error: error.message,
     });
-  }
-}
-  
+
+  } finally {
+    // ----------------------------------------------
+    // 11. Delete temporary PDF
+    // ----------------------------------------------
+
+    if (tempFilePath) {
+      try {
+        await fs.unlink(tempFilePath);
+
+        console.log("🗑️ Temporary PDF deleted");
+      } catch (error) {
+        console.error(
+          "⚠️ Failed to delete temporary PDF:",
+          error.message
+        );
+      }
+    }
+  }  
+};
 
 export const deleteDocument = async (req, res) => {
   try {
