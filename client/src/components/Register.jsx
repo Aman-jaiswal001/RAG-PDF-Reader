@@ -27,7 +27,7 @@ const Register = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950">
+    
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md rounded-2xl bg-slate-900 p-8"
@@ -86,7 +86,7 @@ const Register = ({ onLogin }) => {
           Already have an account? Login
         </button>
       </form>
-    </div>
+    
   );
 };
 

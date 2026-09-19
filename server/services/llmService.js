@@ -23,11 +23,11 @@ export const invokeLLM = async (messages) => {
   // 1️⃣ Try Groq first
   if (groqLLM) {
     try {
-      console.log("🤖 Trying Groq...");
+      // console.log("🤖 Trying Groq...");
 
       const response = await groqLLM.invoke(messages);
 
-      console.log("✅ Groq response received");
+      // console.log("✅ Groq response received");
 
       return {
         response,

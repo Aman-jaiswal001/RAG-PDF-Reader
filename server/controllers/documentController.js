@@ -124,7 +124,7 @@ export const uploadDocument = async (req, res) => {
       });
     }
 
-    console.log(`📄 Uploading: ${req.file.originalname}`);
+    // console.log(`📄 Uploading: ${req.file.originalname}`);
 
     // ----------------------------------------------
     // 2. Generate unique document ID
@@ -148,7 +148,7 @@ export const uploadDocument = async (req, res) => {
       req.file.buffer
     );
 
-    console.log("📁 Temporary PDF created");
+    // console.log("📁 Temporary PDF created");
 
     // ----------------------------------------------
     // 4. Load PDF using LangChain PDFLoader
@@ -158,9 +158,9 @@ export const uploadDocument = async (req, res) => {
 
     const pdfDocuments = await loader.load();
 
-    console.log(
-      `📄 PDF pages loaded: ${pdfDocuments.length}`
-    );
+    // console.log(
+    //   `📄 PDF pages loaded: ${pdfDocuments.length}`
+    // );
 
     // ----------------------------------------------
     // 5. Extract text
@@ -190,9 +190,9 @@ export const uploadDocument = async (req, res) => {
       pdfDocuments
     );
 
-    console.log(
-      `🧩 Created chunks: ${docs.length}`
-    );
+    // console.log(
+    //   `🧩 Created chunks: ${docs.length}`
+    // );
 
     // ----------------------------------------------
     // 7. Add metadata to every chunk
@@ -215,7 +215,7 @@ export const uploadDocument = async (req, res) => {
     // ----------------------------------------------
 
     if (!vectorStore) {
-      console.log("🔵 Creating Qdrant vector store...");
+      // console.log("🔵 Creating Qdrant vector store...");
 
       vectorStore = await QdrantVectorStore.fromDocuments(
         docs,
@@ -227,15 +227,15 @@ export const uploadDocument = async (req, res) => {
         }
       );
 
-      console.log("✅ Qdrant collection created");
+      // console.log("✅ Qdrant collection created");
     } else {
-      console.log("🟢 Adding chunks to Qdrant...");
+      // console.log("🟢 Adding chunks to Qdrant...");
 
       await vectorStore.addDocuments(docs);
 
-      console.log(
-        `✅ Added ${docs.length} chunks to Qdrant`
-      );
+      // console.log(
+      //   `✅ Added ${docs.length} chunks to Qdrant`
+      // );
     }
 
     // ----------------------------------------------
@@ -249,9 +249,9 @@ export const uploadDocument = async (req, res) => {
       chunkCount: docs.length,
     });
 
-    console.log(
-      `✅ Document saved: ${savedDocument._id}`
-    );
+    // console.log(
+    //   `✅ Document saved: ${savedDocument._id}`
+    // );
 
     // ----------------------------------------------
     // 10. Response
@@ -289,7 +289,7 @@ export const uploadDocument = async (req, res) => {
       try {
         await fs.unlink(tempFilePath);
 
-        console.log("🗑️ Temporary PDF deleted");
+        // console.log("🗑️ Temporary PDF deleted");
       } catch (error) {
         console.error(
           "⚠️ Failed to delete temporary PDF:",

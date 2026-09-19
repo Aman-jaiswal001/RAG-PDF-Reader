@@ -21,8 +21,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { useAuth } from "./context/AuthContext";
-import Login from "./components/Login";
-import Register from "./components/Register";
+import AuthPage from "./page/authPage";
 
 const initialMessages = [
   {
@@ -425,11 +424,9 @@ function App() {
   }
 
   if (!user) {
-    if (showRegister) {
-      return <Register onLogin={() => setShowRegister(false)} />;
-    }
-
-    return <Login onRegister={() => setShowRegister(true)} />;
+    return (
+      <AuthPage showRegister={showRegister} setShowRegister={setShowRegister} />
+    );
   }
 
   return (
