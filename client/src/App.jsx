@@ -63,7 +63,7 @@ function App() {
   const { user, loading, token, logout } = useAuth();
   const [showRegister, setShowRegister] = useState(false);
 
-  const API_BASE = import.meta.env.VITE_API_BASE;
+  const API_BASE = import.meta.env.VITE_BASE_URL;
 
   const loadDocuments = async () => {
     setLoadingDocuments(true);
